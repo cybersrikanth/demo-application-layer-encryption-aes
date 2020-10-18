@@ -1,0 +1,1 @@
+export type ErrorMessageType = string | object | null;
