@@ -23,9 +23,7 @@ export class Jwt {
 
     static verifyToken = async (token: string, user: Person) => {
         const NEW_SECRET = Jwt.getSecret(user);
-        console.log('here verify')
         const verified: any = await jwt.verify(token, NEW_SECRET);
-        console.log('will return verify')
         return verified;
     };
 

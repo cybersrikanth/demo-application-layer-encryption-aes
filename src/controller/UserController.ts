@@ -46,16 +46,7 @@ export class UserController {
             const session = new Date().valueOf().toString();
             newUser.session = session;
             newUser.save();
-            // const updatedUser = await UserModel.findByIdAndUpdate(
-            //     newUser._id,
-            //     {
-            //         session,
-            //     },
-            //     { new: true }
-            // ).select("+password");
-            // if(!updatedUser) throw ERRORS.
             const token = await Jwt.getToken(newUser);
-            console.log(newUser);
             return httpResponse(HTTP_SUCCESS_RESPONSE.OK, token, res);
         } catch (error) {
             next(error);
@@ -72,7 +63,6 @@ export class UserController {
             if (!user) throw ERRORS.ACCESS.UN_AUTHORIZED;
             user.session = "";
             user.save();
-            // await UserModel.updateOne({ _id: user._id }, { session: "" });
             return httpResponse(HTTP_SUCCESS_RESPONSE.OK, "signed out", res);
         } catch (error) {
             next(error);

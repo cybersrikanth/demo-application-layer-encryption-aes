@@ -1,7 +1,6 @@
 import { Jwt } from "../utils/Jwt";
 import { ERRORS } from "../error/ERRORS";
 import UserModel from "../model/UserModel";
-import { Request } from "express";
 import { AuthRequest } from "../types/interface/AuthRequest";
 
 export class AuthMiddleware {
