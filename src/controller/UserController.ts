@@ -6,6 +6,8 @@ import { Jwt } from "../utils/Jwt";
 import UserModel from "../model/UserModel";
 import { Request, Response } from "express";
 import { AuthRequest } from "../types/interface/AuthRequest";
+import { CryptoService } from "../Services/Crypto/CryptoService";
+import { Quote } from "../utils/Quote";
 
 export class UserController {
     /*
@@ -47,7 +49,27 @@ export class UserController {
             newUser.session = session;
             newUser.save();
             const token = await Jwt.getToken(newUser);
+            CryptoService.createKey(session);
             return httpResponse(HTTP_SUCCESS_RESPONSE.OK, token, res);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    static me =  async (
+        req: AuthRequest,
+        res: Response,
+        next: (x?: any) => void
+    ) => {
+        try {
+            const { user } = req;
+            if(user)
+                user.password = undefined;
+            const response = {
+                ...user?.toJSON(),
+                quote: Quote.getQuote()
+            }
+            return httpResponse(HTTP_SUCCESS_RESPONSE.OK, response, res);
         } catch (error) {
             next(error);
         }
@@ -68,4 +90,22 @@ export class UserController {
             next(error);
         }
     };
+
+
+    // Returns static pages
+    static welcomePage = async (req:AuthRequest, res: Response, next: (x?:any)=>void) =>{
+        const {user} = req;
+        const session = user?.session;
+
+        const key = session? CryptoService.getKey(session, true):'';
+        res.render('Welcome.ejs');
+    }
+
+    static signupPage = async (req:AuthRequest, res: Response, next: (x?:any)=>void) =>{
+        res.render('Signup.ejs');
+    }
+
+    static loginPage = async (req:AuthRequest, res: Response, next: (x?:any)=>void) =>{
+        res.render('Login.ejs');
+    }
 }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body style="margin: 10px 40px">
+    <h1 id='greet'>Hello Guest</h1>
+    <p id='info'>You are not logged in yet</p>
+    <br/>
+    <p id="quote"></p>
+
+    <a id='logout' style="float: right;" href='javascript:logout()'></a>
+    <a id='login' style="float: right;" href='/user/login'>Login</a>
+    
+
+    <%- include('Modules/fetch.ejs') %>
+
+    <script>
+        (async()=>{
+            const response = await customFetch('/api/user/me', 'GET');
+            const body = await response.json();
+            const greet = document.getElementById('greet');
+
+            const [iv, enc] = body.data.split(':');
+            
+            await new Promise(r => setTimeout(r, 400));
+            const key = document.getElementById('enc-key').value;
+            const decryptedData = await decrypt(enc, iv, key)
+            console.log(decryptedData)
+
+            greet.textContent = `Hello ${decryptedData.name}`;
+
+            const quote = document.getElementById('quote');
+            quote.textContent = decryptedData.quote
+
+            const info = document.getElementById('info');
+            info.textContent = 'Welcome to demo page'
+            document.getElementById('logout').textContent = 'Logout'
+            document.getElementById('login').textContent = ''
+
+
+        })()
+
+        function logout(){
+            customFetch('/api/user/signout', 'PUT');
+            localStorage.clear()
+            window.location.replace('/user/login')
+        }
+    </script>
+</body>
+
+</html>

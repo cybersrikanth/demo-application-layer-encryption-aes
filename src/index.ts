@@ -1,3 +1,10 @@
+/**
+ * @author CyberSrikanth
+ * @email cybersrikanth001@gmail.com
+ * @create date 2021-12-29 09:43:30
+ * @modify date 2021-12-29 09:43:30
+ * @desc This project is cloned from https://github.com/cybersrikanth/ts-node-express-boilerplate
+ */
 import express from "express";
 import "./config/environment";
 import cors from "./config/cors";
@@ -12,14 +19,18 @@ const PORT = process.env.PORT;
 app.use(express.json());
 app.use(cors);
 
+export const Cache = new Map();
+
 (async () => {
     try {
         await connect();
         console.log("db connection success");
         app.disable("x-powered-by");
-        app.use("/api", router); // api routes
+
+        app.use("/", router);
         app.use(handler); // global error handler
         app.use("*", (_, res) => httpResponse(404, "Route Not Found", res));
+
         app.listen(PORT, () =>
             console.log("Express server is running on port", PORT)
         );

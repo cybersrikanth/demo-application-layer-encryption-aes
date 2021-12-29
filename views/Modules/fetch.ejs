@@ -1,0 +1,89 @@
+
+<input id="enc-key" type="text" hidden value="">
+<script>
+    function hex_to_ascii(str1)
+ {
+	var hex  = str1.toString();
+	var str = '';
+	for (var n = 0; n < hex.length; n += 2) {
+		str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+	}
+	return str;
+ }
+
+ function hexToBase64(hexstring) {
+    return btoa(hexstring.match(/\w{2}/g).map(function(a) {
+        return String.fromCharCode(parseInt(a, 16));
+    }).join(""));
+}
+
+
+ async function encrypt(text, key){
+        await new Promise(r => setTimeout(r, 300));
+        key = CryptoJS.enc.Base64.parse(key);
+        const iv = CryptoJS.lib.WordArray.random(16);
+
+        const encrypted = await CryptoJS.AES.encrypt(JSON.stringify(text),key, {iv, mode: CryptoJS.mode.CBC});
+
+        const encWithIv = hexToBase64(iv.toString()) + ':' + hexToBase64(encrypted.ciphertext.toString())
+        return encWithIv;
+
+    }
+
+    async function decrypt(enc, iv, key){
+        enc = CryptoJS.enc.Base64.parse(enc)
+        iv = CryptoJS.enc.Base64.parse(iv)
+        key = CryptoJS.enc.Base64.parse(key)
+        const decrypted = await CryptoJS.AES.decrypt({ciphertext:enc}, key, {iv, mode: CryptoJS.mode.CBC});
+        return JSON.parse(hex_to_ascii(decrypted.toString()))
+    }
+
+
+
+    async function customFetch(url, method, data) {
+
+        if(typeof data === "object"){
+            const encKey = document.getElementById('enc-key').value;
+            await Promise.all(Object.keys(data).map(async(key)=>data[key] = await encrypt(data[key],encKey)));
+
+            data._encKey = hexToBase64(CryptoJS.MD5(encKey).toString());
+            // const jsonDataString = typeof data !== "string"?JSON.stringify(data):data
+            // request.data.data = JSON.parse(CryptoService.decryptText(jsonDataString));
+        }
+        console.log(data);
+        const response = await fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${
+                    localStorage.getItem("access-token") ?? ""
+                }`,
+            },
+            body: JSON.stringify(data),
+        });
+        if(response.status > 399){
+            const errTitle = response.statusText;
+            let errDesc = (await response.json()).data
+
+            const [iv, enc] = errDesc.split(':');
+              
+            const key = document.getElementById('enc-key').value;
+            let decryptedData = await decrypt(enc, iv, key)
+            console.log(decryptedData)
+
+            if(Array.isArray(decryptedData)) decryptedData = decryptedData[0]
+
+            alert(`${errTitle}\n${decryptedData}`)
+        }
+        return response;
+    }
+
+
+
+    (async () => {
+        const response = await customFetch('/api/user/encryption-key', 'GET')
+        const body = await response.json();
+        document.getElementById('enc-key').setAttribute('value', body.data);
+    })()
+
+</script>

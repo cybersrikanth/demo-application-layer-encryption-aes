@@ -7,7 +7,7 @@ export class AuthMiddleware {
     static validate = async (req:AuthRequest, _:any, next:(x?:any)=>void) => {
         try {
             const token = String(req.headers.authorization).split(" ")[1];
-            if (!token) throw ERRORS.ACCESS.NO_TOKEN;
+            if (!token) return next();
             const decoded = await Jwt.decodeToken(token);
             if (!decoded) throw ERRORS.ACCESS.NO_TOKEN;
             const user = await UserModel.findById(decoded.id).select(

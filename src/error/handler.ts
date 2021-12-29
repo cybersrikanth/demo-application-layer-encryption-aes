@@ -17,6 +17,7 @@ export const handler = (
             return httpResponse(err.httpCode, err.message, res);
 
         case "ValidationError":
+            console.error(err)
             return httpResponse(
                 HTTP_ERROR_RESPONSE.UNPROCESSABLE_ENTITY,
                 err.errors,
@@ -39,7 +40,7 @@ export const handler = (
 
         case "MongoError":
             /*
-                If you want to handle more complex errors, split the code in seperate files
+                If you want to handle more complex errors, split the code in separate files
             */
 
             if (err.code === 11000) {
@@ -51,7 +52,7 @@ export const handler = (
             }
 
         default:
-            console.log(err);
+            console.error(err);
             return httpResponse(
                 HTTP_ERROR_RESPONSE.INTERNAL_SERVER_ERROR,
                 "Something Went Wrong",
